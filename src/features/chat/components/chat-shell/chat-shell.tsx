@@ -35,7 +35,7 @@ export const ChatShell = ({
             orientation="vertical"
             className="mr-2 data-vertical:h-4 data-vertical:self-auto"
           />
-          <Breadcrumb>
+          <Breadcrumb className="min-w-0 flex-1">
             <BreadcrumbList>
               <BreadcrumbItem className="hidden md:block">
                 <BreadcrumbLink asChild>

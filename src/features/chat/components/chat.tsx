@@ -163,6 +163,7 @@ export const Chat = () => {
       sidebar={
         <ChatSidebar
           activeChatId={activeChatId}
+          activePage="chat"
           chats={chats}
           onDeleteChat={(id) => {
             void handleDeleteChat(id)

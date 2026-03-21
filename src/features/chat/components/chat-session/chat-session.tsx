@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils"
 import type { UIMessage } from "ai"
 import { MessageSquareIcon } from "lucide-react"
 import Image from "next/image"
+import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
 
 type ChatSessionProps = {
@@ -86,11 +87,31 @@ export const ChatSession = ({
       <Conversation className="min-h-0 flex-1">
         <ConversationContent>
           {messages.length === 0 && (
-            <ConversationEmptyState
-              description="Send a message to start chatting"
-              icon={<MessageSquareIcon className="size-8" />}
-              title="How can I help you?"
-            />
+            <ConversationEmptyState>
+              <div className="text-muted-foreground">
+                <MessageSquareIcon className="size-8" />
+              </div>
+              <div className="space-y-3">
+                <h3 className="text-sm font-medium">How can I help you?</h3>
+                <p className="max-w-md text-sm text-muted-foreground">
+                  This chat answers with{" "}
+                  <span className="text-foreground/90">text</span> and can{" "}
+                  <span className="text-foreground/90">generate images</span>{" "}
+                  when you describe what you want to see—just ask in natural
+                  language.
+                </p>
+                <p className="max-w-md text-xs text-muted-foreground">
+                  For queued jobs that finish in the background, use{" "}
+                  <Link
+                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                    href="/toolkit"
+                  >
+                    Toolkit
+                  </Link>{" "}
+                  in the sidebar.
+                </p>
+              </div>
+            </ConversationEmptyState>
           )}
 
           {messages.map((message, index) => (

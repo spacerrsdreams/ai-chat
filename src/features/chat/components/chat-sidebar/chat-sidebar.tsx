@@ -17,21 +17,21 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  SidebarSeparator,
 } from "@/components/ui/sidebar"
-import type { ChatListItem } from "@/features/chat/types/chat-list.types"
-import { MessageSquareIcon, MoreHorizontalIcon, PlusIcon } from "lucide-react"
-
-type ChatSidebarProps = {
-  chats: ChatListItem[]
-  activeChatId: string | null
-  onSelectChat: (id: string) => void
-  onNewChat: () => void
-  onDeleteChat: (id: string) => void
-}
+import type { ChatSidebarProps } from "@/features/chat/types/chat-sidebar.types"
+import {
+  MessageSquareIcon,
+  MoreHorizontalIcon,
+  PlusIcon,
+  WandSparklesIcon,
+} from "lucide-react"
+import Link from "next/link"
 
 export const ChatSidebar = ({
   chats,
   activeChatId,
+  activePage,
   onSelectChat,
   onNewChat,
   onDeleteChat,
@@ -44,7 +44,7 @@ export const ChatSidebar = ({
             <MessageSquareIcon className="size-4" />
           </div>
           <div className="min-w-0 flex-1 leading-none">
-            <span className="truncate font-medium">Chats</span>
+            <span className="truncate font-medium">AI Chat</span>
           </div>
           <Button
             aria-label="New chat"
@@ -60,17 +60,52 @@ export const ChatSidebar = ({
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
+          <SidebarGroupLabel>Pages</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={activePage === "chat"}
+                  tooltip="Chat"
+                >
+                  <Link href="/">
+                    <MessageSquareIcon className="size-4" />
+                    <span>Chat</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={activePage === "toolkit"}
+                  tooltip="Toolkit"
+                >
+                  <Link href="/toolkit">
+                    <WandSparklesIcon className="size-4" />
+                    <span>Toolkit</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarSeparator />
+
+        <SidebarGroup>
           <SidebarGroupLabel>History</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {chats.length === 0 && (
                 <p className="px-2 text-xs text-muted-foreground">
-                  No chats yet. Start a new one.
+                  No chats yet. Start a new one from Chat.
                 </p>
               )}
               {chats.map((chat) => {
                 const label = chat.title?.trim() || "Untitled chat"
-                const isActive = activeChatId === chat.id
+                const isActive =
+                  activePage === "chat" && activeChatId === chat.id
                 return (
                   <SidebarMenuItem className="group/menu-item" key={chat.id}>
                     <SidebarMenuButton

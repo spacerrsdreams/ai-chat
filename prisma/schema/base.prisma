@@ -32,3 +32,29 @@ enum MessageRole {
   assistant
   system
 }
+
+model GenerationJob {
+  id           String              @id @default(cuid())
+  status       GenerationJobStatus @default(PENDING)
+  kind         GenerationJobKind
+  prompt       String
+  resultUrl    String?
+  resultText   String?
+  errorMessage String?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  @@index([createdAt(sort: Desc)])
+}
+
+enum GenerationJobStatus {
+  PENDING
+  GENERATING
+  COMPLETED
+  FAILED
+}
+
+enum GenerationJobKind {
+  image
+  text
+}
