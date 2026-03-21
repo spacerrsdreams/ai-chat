@@ -16,6 +16,7 @@ alwaysApply: true
 | shadcn, ai-elements, Lucide, styling | **ui-shadcn-lucide** |
 | Prisma / migrations | **prisma-migrations** |
 | Zod for runtime validation of unknown shapes | **zod-validation** |
+| `import "server-only"` on server actions, repositories, Prisma client | **server-only-guard** |
 
 ## Standard UI library (read-only)
 

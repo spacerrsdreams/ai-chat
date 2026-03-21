@@ -148,7 +148,7 @@ export const ChatSession = ({
                       ) {
                         return (
                           <div
-                            className="relative mt-2 block w-full max-w-2xl shrink-0 overflow-hidden rounded-lg border"
+                            className="relative mt-2 block w-full max-w-2xl shrink-0 overflow-hidden rounded-lg"
                             key={partIndex}
                           >
                             <Image

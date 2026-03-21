@@ -51,6 +51,10 @@ export async function POST(req: Request) {
     stopWhen: stepCountIs(5),
   })
 
+  // Persist the finalized *UI* thread (`UIMessage[]` with tool parts, etc.). The UI stream’s
+  // `onFinish` merges `originalMessages` with the completed assistant message — the shape
+  // we store. `streamText`’s own `onFinish` receives model-level `StepResult` / `response.messages`,
+  // not `UIMessage[]`, so it is not a drop-in replacement without a separate conversion layer.
   return result.toUIMessageStreamResponse({
     originalMessages: messages,
     onFinish: async ({ messages: finalMessages }) => {

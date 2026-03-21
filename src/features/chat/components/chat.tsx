@@ -139,7 +139,7 @@ export const Chat = () => {
 
   const waitingForChatDetail =
     !!activeChatId && hydratedFromServer && chatDetailQuery.isPending
-  const uiReady = routingReady && !waitingForChatDetail
+  const shellReady = routingReady && !!sessionClientId
 
   if (chatsQuery.isError) {
     return (
@@ -149,7 +149,7 @@ export const Chat = () => {
     )
   }
 
-  if (!uiReady || !sessionClientId) {
+  if (!shellReady) {
     return (
       <div className="flex h-svh items-center justify-center">
         <Spinner className="size-8" />
@@ -172,23 +172,29 @@ export const Chat = () => {
         />
       }
     >
-      <ChatSession
-        initialDbChatId={activeChatId}
-        initialMessages={initialMessages}
-        key={sessionClientId}
-        onChatCreated={handleChatCreated}
-        onConversationUpdated={() => {
-          void queryClient.invalidateQueries({
-            queryKey: chatQueryKeys.chats(),
-          })
-          if (activeChatId) {
+      {waitingForChatDetail ? (
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center">
+          <Spinner className="size-8" />
+        </div>
+      ) : (
+        <ChatSession
+          initialDbChatId={activeChatId}
+          initialMessages={initialMessages}
+          key={sessionClientId}
+          onChatCreated={handleChatCreated}
+          onConversationUpdated={() => {
             void queryClient.invalidateQueries({
-              queryKey: chatQueryKeys.chat(activeChatId),
+              queryKey: chatQueryKeys.chats(),
             })
-          }
-        }}
-        sessionClientId={sessionClientId}
-      />
+            if (activeChatId) {
+              void queryClient.invalidateQueries({
+                queryKey: chatQueryKeys.chat(activeChatId),
+              })
+            }
+          }}
+          sessionClientId={sessionClientId}
+        />
+      )}
     </ChatShell>
   )
 }

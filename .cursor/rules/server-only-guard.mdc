@@ -1,0 +1,32 @@
+---
+description: Require `server-only` in server actions, repositories, and other server-only modules so they cannot be bundled into client code by mistake
+globs: src/**/actions/**/*.{ts,tsx},src/**/*actions*.{ts,tsx},src/**/repositories/**/*.ts,src/lib/prisma.ts
+alwaysApply: false
+---
+
+# Server-only guard (`server-only`)
+
+Use the official Next.js pattern so **server-only code is never pulled into the client graph** by accident. The `server-only` package throws at **build time** if a Client Component or client hook imports the module.
+
+## When to add it
+
+Add **`import "server-only"`** as the **first import** (after any file-level comments) in:
+
+1. **Server Actions** — any file that uses **`"use server"`** (whole file or exported functions), e.g. `actions.ts`, `**/actions/**/*.ts`, `**/*-actions.ts`.
+2. **Repositories / DB** — modules under **`src/features/**/repositories/`** and **`src/lib/prisma.ts`** (or other server-only data clients).
+
+## Pattern
+
+```typescript
+import "server-only"
+
+import { prisma } from "@/lib/prisma"
+// …rest of imports
+```
+
+- **Do not** import `server-only` from client components or from modules imported by `"use client"` files.
+- If a server action file only re-exports from a repository that already has `import "server-only"`, the action file should **still** include its own `import "server-only"` at the top so the **action module** is explicitly marked—imports of the action from client code fail at the action boundary.
+
+## Dependency
+
+The **`server-only`** package must be listed in **`package.json`** dependencies (`bun add server-only`).

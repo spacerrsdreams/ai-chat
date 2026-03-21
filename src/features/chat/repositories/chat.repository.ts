@@ -1,3 +1,5 @@
+import "server-only"
+
 import { prisma } from "@/lib/prisma"
 import type { Message as MessageRow } from "@/generated/prisma/client"
 import { Prisma } from "@/generated/prisma/client"
@@ -49,7 +51,7 @@ export async function getChatWithMessages(
   const chat = await prisma.chat.findUnique({
     where: { id: chatId },
     include: {
-      messages: { orderBy: { createdAt: "asc" } },
+      messages: { orderBy: [{ createdAt: "asc" }, { id: "asc" }] },
     },
   })
   if (!chat) {
@@ -90,20 +92,20 @@ export async function replaceMessagesForChat(
   messages: UIMessage[]
 ): Promise<void> {
   const uniqueMessages = dedupeMessagesByIdPreservingOrder(messages)
-  const rows = uniqueMessages.map((m) => ({
+  // Distinct timestamps so Postgres `ORDER BY createdAt` is stable (ties are unordered).
+  const baseTime = Date.now()
+  const rows = uniqueMessages.map((m, index) => ({
     id: toStorageMessageId(chatId, m.id),
     chatId,
     role: m.role,
     parts: m.parts as Prisma.InputJsonValue,
+    createdAt: new Date(baseTime + index),
   }))
 
   await prisma.$transaction(async (tx) => {
     await tx.message.deleteMany({ where: { chatId } })
     if (rows.length > 0) {
-      await tx.message.createMany({
-        data: rows,
-        skipDuplicates: true,
-      })
+      await tx.message.createMany({ data: rows })
     }
     await tx.chat.update({
       where: { id: chatId },
