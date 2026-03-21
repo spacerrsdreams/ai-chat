@@ -1,0 +1,30 @@
+---
+description: Do not add barrel index.ts files that only re-export other modules
+alwaysApply: true
+---
+
+# No barrel `index.ts` files
+
+- **Do not create** `index.ts` (or `index.tsx`) files whose **only purpose** is to import symbols from other files in the same folder and re-export them (“barrel file”).
+- **Import directly** from the defining module instead (e.g. `@/features/foo/components/widget` rather than `@/features/foo`).
+
+## Why
+
+Barrel files add indirection, slow tooling resolution, and encourage unclear dependency graphs without real benefit in this repo.
+
+## Allowed
+
+- **`index.ts` is fine** when it contains real logic (not only re-exports), e.g. a route handler or a module that wires several pieces together with implementation.
+- **Framework conventions** (e.g. Next.js `app/**/page.tsx`, package entry points required by tooling) take precedence when they are not “barrel-only” patterns.
+
+## Examples
+
+```typescript
+// ❌ BAD — barrel-only
+// features/chat/tools/index.ts
+export { chatTools } from "./chat-tools";
+export { generateImageTool } from "./generate-image.tool";
+
+// ✅ GOOD — consumers import from the concrete file
+import { chatTools } from "@/features/chat/tools/chat-tools";
+```

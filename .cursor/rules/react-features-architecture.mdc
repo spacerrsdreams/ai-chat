@@ -46,7 +46,7 @@ alwaysApply: true
 - **O** — Extend via composition/props/hooks rather than editing unrelated modules for every change.
 - **L** — Substitute implementations via clear props/contracts (e.g. same interface for alternate renderers).
 - **I** — Small, focused props and hook return shapes; avoid “mega props” objects.
-- **D** — Features depend on abstractions (`lib` APIs, hooks) rather than reaching deep into other features’ internals; import through a feature’s public entry (e.g. `index.ts`) when you add one.
+- **D** — Features depend on abstractions (`lib` APIs, hooks) rather than reaching deep into other features’ internals; import concrete modules by path (no barrel-only `index.ts` re-exports—see project rule **no-barrel-index**).
 
 ## Example layout
 
@@ -58,5 +58,4 @@ src/
     hooks/
     utils/
     types/          # or types.ts / *.types.ts — feature-only; never inside component files
-    index.ts        # re-exports stable public API for the feature
 ```
