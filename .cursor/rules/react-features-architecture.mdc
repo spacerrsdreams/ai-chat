@@ -1,0 +1,62 @@
+---
+description: Feature-first structure, colocation, SOLID, and small focused modules for this Next.js React app
+globs: src/**/*.{ts,tsx}
+alwaysApply: true
+---
+
+# Architecture (strict)
+
+## Standard UI library (read-only)
+
+- **Do not modify** any files under **`src/components/ui/`** or **`src/components/ai-elements/`**. Treat them as a fixed standard library (shadcn + ai-elements), same as vendor code.
+- **Customize only outside those folders:** compose in `src/features/...`, thin wrapper components, `className` / props from parents, theme tokens in global styles—not edits inside `ui` or `ai-elements`.
+
+## Feature ownership
+
+- **All product/feature logic lives under `src/features/<feature-name>/`** (hooks, components, utils, types, constants specific to that feature).
+- **`src/app/`** stays thin: routing, layouts, and wiring that imports from `src/features` (or shared libs). Do not grow heavy UI or business logic in route files—extract to a feature.
+- **Shared cross-feature code** goes in `src/lib/`, `src/hooks/` (only if truly shared), or small shared modules—not inside a single feature folder unless it is feature-private.
+
+## Colocation
+
+- Keep **components and their local utils** under the same feature tree (e.g. `src/features/chat/components/...` next to `src/features/chat/utils/...`).
+- **Types are not inlined** — they live only in dedicated type files (see Types below), still under that feature, or in `src/global.types.ts` when shared across features.
+- Avoid a flat dump of unrelated files at the feature root; group by subfolder or by slice (e.g. `components/`, `hooks/`, `utils/`, `types/`).
+
+## Types (strict)
+
+- **Never define feature or domain types inside `.tsx` or implementation `.ts` files** (components, hooks, utils). No `interface`/`type` blocks for shared props, models, or API shapes next to implementation—extract them.
+- **Use dedicated files only:** `types.ts`, `*.types.ts`, or a `types/` folder within the feature (e.g. `src/features/chat/types/message.types.ts`).
+- **Shared types** (used by more than one feature): **`src/global.types.ts` only**—one canonical file for app-wide types. Do not scatter the same shared shapes across `lib` or feature files; add or extend exports there and import with `from "@/global.types"`.
+
+## TypeScript and lint discipline (strict)
+
+- **Minimize casting and assertions.** Avoid `as …`, `as unknown as …`, and non-null `!` to force types. Prefer narrowing (e.g. `typeof`, `in`, discriminated unions), type guards, well-typed generics, and validated boundaries. Literal `as const` for readonly tuples/literals is fine when it improves inference—do not use it to paper over unsafe `any`.
+- **No suppressions in source.** Do not add `eslint-disable` (line, block, or file), `eslint-disable-next-line`, `@ts-ignore`, `@ts-expect-error`, or `@ts-nocheck`. If a rule or error is wrong, fix the code or adjust **project** ESLint/TS config—not inline directives in app or feature files.
+
+## Single responsibility and file size
+
+- **One main concern per file.** Split large components into smaller presentational pieces and hooks; extract pure helpers to `utils` (or `*.utils.ts`) in the same feature.
+- **Prefer several small files over one “god” file.** If a file mixes unrelated UI, data fetching, and formatting, split it.
+- **Reuse deliberately:** import from `src/components/ui` and `src/components/ai-elements` (read-only); do not copy-paste their internals into features or edit those directories.
+
+## SOLID (practical)
+
+- **S** — Each module does one job (UI vs data vs formatting).
+- **O** — Extend via composition/props/hooks rather than editing unrelated modules for every change.
+- **L** — Substitute implementations via clear props/contracts (e.g. same interface for alternate renderers).
+- **I** — Small, focused props and hook return shapes; avoid “mega props” objects.
+- **D** — Features depend on abstractions (`lib` APIs, hooks) rather than reaching deep into other features’ internals; import through a feature’s public entry (e.g. `index.ts`) when you add one.
+
+## Example layout
+
+```text
+src/
+  global.types.ts   # shared types across features only
+  features/chat/
+    components/
+    hooks/
+    utils/
+    types/          # or types.ts / *.types.ts — feature-only; never inside component files
+    index.ts        # re-exports stable public API for the feature
+```

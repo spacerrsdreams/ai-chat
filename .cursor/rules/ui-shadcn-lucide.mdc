@@ -1,0 +1,39 @@
+---
+description: UI stack — shadcn, ai-elements, Lucide, minimal custom styling
+globs: src/**/*.tsx
+alwaysApply: false
+---
+
+# UI and styling (strict)
+
+## Standard library (read-only)
+
+- **Never edit** files under `src/components/ui/` or `src/components/ai-elements/`. Import and compose from `src/features/...` or app code only. (Same rule as architecture: these dirs are vendor-like.)
+
+## Components
+
+- **Use `@/components/ui/*` (shadcn)** for generic UI: buttons, inputs, dialogs, cards, etc. Do not introduce parallel primitive libraries for the same role.
+- **Use `@/components/ai-elements/*`** for AI/chat-specific patterns already provided by this project. Prefer composing these over rebuilding similar UI.
+- **Do not add new raw HTML/CSS component libraries** for app chrome unless explicitly required; stay on shadcn + existing ai-elements.
+
+## Styling
+
+- **Minimize custom styling.** Rely on shadcn variants, `className` utilities (`cn` from `@/lib/utils`), and Tailwind only where the design system leaves a gap.
+- **Avoid large inline style objects and one-off global CSS** for feature UI; prefer tokens, variants, and existing component patterns.
+- **No duplicate styling systems** (e.g. styled-components + Tailwind) for new code.
+
+## Icons
+
+- **Use `lucide-react` only** for icons (matches `components.json`). Import named icons; do not add other icon packs for routine UI.
+
+## Patterns
+
+```tsx
+// ✅ Prefer
+import { Button } from "@/components/ui/button";
+import { Message } from "@/components/ai-elements/message";
+import { Send } from "lucide-react";
+
+// ❌ Avoid — ad-hoc primitives when shadcn exists
+<button className="rounded bg-blue-500 px-4 py-2">Send</button>
+```

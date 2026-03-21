@@ -1,0 +1,28 @@
+---
+description: Prisma schema/migrations ownership; user runs all DB migrations
+alwaysApply: true
+---
+
+# Prisma & migrations
+
+## Layout (source of truth)
+
+- **`prisma.config.ts`** (repo root) defines the app datasource (`DIRECT_URL` via env), **schema** at `prisma/schema` (multi-file `.prisma`), and **migrations** at `prisma/migrations`.
+- The generator in `prisma/schema/base.prisma` outputs the client to **`src/generated/prisma`**.
+- **`test/prisma/`** holds an additional schema tree and migrations for tests/assessment—same rules apply when editing there.
+
+## What the agent may do
+
+- Edit Prisma model files under the relevant **`schema/`** folder(s).
+- Add or edit SQL under **`migrations/<timestamp>_<name>/migration.sql`** (or new migration folders) when schema changes require it.
+- Keep naming and structure consistent with existing migrations in the repo.
+
+## What the user runs (do not execute from the agent)
+
+- **Do not** run commands that apply schema to the database, including: `prisma migrate dev`, `prisma migrate deploy`, `prisma db push`, `prisma migrate reset`, or equivalent.
+- After changing schema or migrations, **tell the user** what changed and that they should apply migrations locally or in their pipeline—do not run those commands yourself.
+
+## Client generation
+
+- **`prisma generate`** (e.g. `npm run prisma:generate` / `bun run prisma:generate` per `package.json`) updates the generated client under `src/generated/prisma`; it is **not** the same as applying migrations to the DB.
+- Only run generate if the user explicitly asks or the task clearly requires a fresh client; otherwise the user or CI may run it.
