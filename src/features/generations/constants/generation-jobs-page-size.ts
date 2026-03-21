@@ -1,0 +1,1 @@
+export const GENERATION_JOBS_PAGE_SIZE = 20

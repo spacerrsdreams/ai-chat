@@ -66,7 +66,7 @@ export const ToolkitPage = () => {
 
   return (
     <ChatShell
-      breadcrumbTitle="Toolkit"
+      breadcrumbTitle="Images"
       sidebar={
         <ChatSidebar
           activeChatId={null}

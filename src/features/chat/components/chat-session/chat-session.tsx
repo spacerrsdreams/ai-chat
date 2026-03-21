@@ -101,12 +101,12 @@ export const ChatSession = ({
                   language.
                 </p>
                 <p className="max-w-md text-xs text-muted-foreground">
-                  For queued jobs that finish in the background, use{" "}
+                  For queued jobs that finish in the background, open{" "}
                   <Link
                     className="font-medium text-foreground underline-offset-4 hover:underline"
                     href="/toolkit"
                   >
-                    Toolkit
+                    Images
                   </Link>{" "}
                   in the sidebar.
                 </p>

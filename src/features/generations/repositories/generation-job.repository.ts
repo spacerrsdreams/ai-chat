@@ -1,6 +1,6 @@
 import "server-only"
 
-import type { GenerationJobKind } from "@/generated/prisma/client"
+import type { GenerationJob, GenerationJobKind } from "@/generated/prisma/client"
 
 import { prisma } from "@/lib/prisma"
 
@@ -74,8 +74,17 @@ export async function getGenerationJobById(id: string) {
   return prisma.generationJob.findUnique({ where: { id } })
 }
 
-export async function listGenerationJobsNewestFirst() {
-  return prisma.generationJob.findMany({
+export async function listGenerationJobsPaged(input: {
+  offset: number
+  limit: number
+}): Promise<{ rows: GenerationJob[]; hasMore: boolean }> {
+  const take = input.limit + 1
+  const rows = await prisma.generationJob.findMany({
     orderBy: { createdAt: "desc" },
+    skip: input.offset,
+    take,
   })
+  const hasMore = rows.length > input.limit
+  const slice = hasMore ? rows.slice(0, input.limit) : rows
+  return { rows: slice, hasMore }
 }

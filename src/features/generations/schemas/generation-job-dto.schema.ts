@@ -23,6 +23,9 @@ export const generationJobDtoSchema = z.object({
 
 export const generationJobListResponseSchema = z.object({
   jobs: z.array(generationJobDtoSchema),
+  limit: z.number(),
+  offset: z.number(),
+  hasMore: z.boolean(),
 })
 
 export const createGenerationJobResponseSchema = z.object({

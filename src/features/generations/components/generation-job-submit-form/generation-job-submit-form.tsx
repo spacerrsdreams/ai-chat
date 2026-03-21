@@ -9,7 +9,7 @@ import {
   PromptInputTools,
 } from "@/components/ai-elements/prompt-input"
 import { useMutateCreateGenerationJob } from "@/features/generations/hooks/use-mutate-create-generation-job"
-import { ApiError } from "@/lib/http-client"
+import { getGenerationJobMutationErrorDisplay } from "@/features/generations/utils/generation-job-mutation-error.utils"
 import type { ChatStatus } from "ai"
 
 export const GenerationJobSubmitForm = () => {
@@ -23,12 +23,7 @@ export const GenerationJobSubmitForm = () => {
     await mutation.mutateAsync({ prompt: text, kind: "image" })
   }
 
-  const errorMessage =
-    mutation.error instanceof ApiError
-      ? mutation.error.message
-      : mutation.error
-        ? "Could not queue job"
-        : null
+  const errorDisplay = getGenerationJobMutationErrorDisplay(mutation.error)
 
   const submitStatus: ChatStatus = mutation.isPending ? "submitted" : "ready"
 
@@ -51,10 +46,21 @@ export const GenerationJobSubmitForm = () => {
           />
         </PromptInputFooter>
       </PromptInput>
-      {errorMessage ? (
-        <p className="text-sm text-destructive" role="alert">
-          {errorMessage}
-        </p>
+      {errorDisplay ? (
+        <div className="space-y-1 text-sm text-destructive" role="alert">
+          <p>{errorDisplay.summary}</p>
+          {errorDisplay.issues.length > 0 ? (
+            <ul className="list-inside list-disc space-y-0.5 text-xs">
+              {errorDisplay.issues.map((issue, index) => (
+                <li key={`${issue.pathLabel}-${issue.message}-${index}`}>
+                  {issue.pathLabel
+                    ? `${issue.pathLabel}: ${issue.message}`
+                    : issue.message}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
       ) : null}
     </div>
   )

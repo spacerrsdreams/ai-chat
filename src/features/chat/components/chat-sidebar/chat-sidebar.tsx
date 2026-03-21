@@ -20,6 +20,7 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar"
 import type { ChatSidebarProps } from "@/features/chat/types/chat-sidebar.types"
+import { cn } from "@/lib/utils"
 import {
   MessageSquareIcon,
   MoreHorizontalIcon,
@@ -67,11 +68,16 @@ export const ChatSidebar = ({
                 <SidebarMenuButton
                   asChild
                   isActive={activePage === "chat"}
-                  tooltip="Chat"
+                  tooltip="Chat — text + image generation"
                 >
-                  <Link href="/">
-                    <MessageSquareIcon className="size-4" />
-                    <span>Chat</span>
+                  <Link className={cn("flex w-full items-start gap-2")} href="/">
+                    <MessageSquareIcon className="mt-0.5 size-4 shrink-0" />
+                    <span className="grid min-w-0 flex-1 text-left leading-snug">
+                      <span className="truncate text-sm font-medium">Chat</span>
+                      <span className="truncate text-[10px] text-muted-foreground">
+                        Text + image generation
+                      </span>
+                    </span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -79,11 +85,19 @@ export const ChatSidebar = ({
                 <SidebarMenuButton
                   asChild
                   isActive={activePage === "toolkit"}
-                  tooltip="Toolkit"
+                  tooltip="Images — queue-based image generations"
                 >
-                  <Link href="/toolkit">
-                    <WandSparklesIcon className="size-4" />
-                    <span>Toolkit</span>
+                  <Link
+                    className={cn("flex w-full items-start gap-2")}
+                    href="/toolkit"
+                  >
+                    <WandSparklesIcon className="mt-0.5 size-4 shrink-0" />
+                    <span className="grid min-w-0 flex-1 text-left leading-snug">
+                      <span className="truncate text-sm font-medium">Images</span>
+                      <span className="truncate text-[10px] text-muted-foreground">
+                        Queue-based image generations
+                      </span>
+                    </span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
