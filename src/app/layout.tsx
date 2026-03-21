@@ -1,9 +1,8 @@
 import { Geist_Mono, Nunito_Sans } from "next/font/google"
 
 import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
-import { TooltipProvider } from "@/components/ui/tooltip"
+import { AppProviders } from "@/providers/app-providers"
 
 const nunitoSans = Nunito_Sans({ subsets: ["latin"], variable: "--font-sans" })
 
@@ -29,9 +28,7 @@ export default function RootLayout({
       )}
     >
       <body>
-        <ThemeProvider>
-          <TooltipProvider>{children}</TooltipProvider>
-        </ThemeProvider>
+        <AppProviders>{children}</AppProviders>
       </body>
     </html>
   )

@@ -6,16 +6,18 @@ alwaysApply: true
 # No barrel `index.ts` files
 
 - **Do not create** `index.ts` (or `index.tsx`) files whose **only purpose** is to import symbols from other files in the same folder and re-export them (“barrel file”).
-- **Import directly** from the defining module instead (e.g. `@/features/foo/components/widget` rather than `@/features/foo`).
+- **Import directly** from the defining module (e.g. `@/features/foo/components/widget`).
+
+See **react-features-architecture** for how features are organized.
 
 ## Why
 
-Barrel files add indirection, slow tooling resolution, and encourage unclear dependency graphs without real benefit in this repo.
+Barrel files add indirection, slow tooling resolution, and unclear dependency graphs without real benefit in this repo.
 
 ## Allowed
 
 - **`index.ts` is fine** when it contains real logic (not only re-exports), e.g. a route handler or a module that wires several pieces together with implementation.
-- **Framework conventions** (e.g. Next.js `app/**/page.tsx`, package entry points required by tooling) take precedence when they are not “barrel-only” patterns.
+- **Framework conventions** (e.g. Next.js `app/**/page.tsx`) take precedence when they are not barrel-only patterns.
 
 ## Examples
 

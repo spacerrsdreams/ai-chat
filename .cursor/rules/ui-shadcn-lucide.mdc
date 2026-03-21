@@ -1,20 +1,22 @@
 ---
-description: UI stack — shadcn, ai-elements, Lucide, minimal custom styling
+description: shadcn + ai-elements composition, Lucide icons, Tailwind styling constraints
 globs: src/**/*.tsx
 alwaysApply: false
 ---
 
 # UI and styling (strict)
 
+Feature ownership and read-only vendor dirs are defined in **react-features-architecture**; this file focuses on **which** UI primitives to use and **how** to style them.
+
 ## Standard library (read-only)
 
-- **Never edit** files under `src/components/ui/` or `src/components/ai-elements/`. Import and compose from `src/features/...` or app code only. (Same rule as architecture: these dirs are vendor-like.)
+- **Never edit** `src/components/ui/` or `src/components/ai-elements/`. Compose from `src/features/...` or app code only.
 
 ## Components
 
 - **Use `@/components/ui/*` (shadcn)** for generic UI: buttons, inputs, dialogs, cards, etc. Do not introduce parallel primitive libraries for the same role.
-- **Use `@/components/ai-elements/*`** for AI/chat-specific patterns already provided by this project. Prefer composing these over rebuilding similar UI.
-- **Do not add new raw HTML/CSS component libraries** for app chrome unless explicitly required; stay on shadcn + existing ai-elements.
+- **Use `@/components/ai-elements/*`** for AI/chat-specific patterns already in the project. Prefer composing these over rebuilding similar UI.
+- **Do not add** new raw HTML/CSS component libraries for app chrome unless explicitly required; stay on shadcn + existing ai-elements.
 
 ## Styling
 

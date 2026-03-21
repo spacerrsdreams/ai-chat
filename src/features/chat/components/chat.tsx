@@ -1,146 +1,194 @@
 "use client"
 
-import {
-  Conversation,
-  ConversationContent,
-  ConversationEmptyState,
-  ConversationScrollButton,
-} from "@/components/ai-elements/conversation"
-import {
-  Message,
-  MessageContent,
-  MessageResponse,
-} from "@/components/ai-elements/message"
-import {
-  PromptInput,
-  PromptInputFooter,
-  PromptInputSubmit,
-  PromptInputTextarea,
-  PromptInputTools,
-} from "@/components/ai-elements/prompt-input"
+import { ChatSession } from "@/features/chat/components/chat-session/chat-session"
+import { ChatShell } from "@/features/chat/components/chat-shell/chat-shell"
+import { ChatSidebar } from "@/features/chat/components/chat-sidebar/chat-sidebar"
+import { chatQueryKeys } from "@/features/chat/constants/chat-query-keys"
+import { useChatPersistenceHydrated } from "@/features/chat/hooks/use-chat-persistence-hydrated"
+import { useFetchChatDetail } from "@/features/chat/hooks/use-fetch-chat-detail"
+import { useFetchChats } from "@/features/chat/hooks/use-fetch-chats"
+import { useMutateDeleteChat } from "@/features/chat/hooks/use-mutate-delete-chat"
+import { useChatPersistenceStore } from "@/features/chat/store/chat-persistence.store"
 import { Spinner } from "@/components/ui/spinner"
-import { useChat } from "@ai-sdk/react"
-import { DefaultChatTransport } from "ai"
-import { MessageSquareIcon } from "lucide-react"
-import Image from "next/image"
-
-const transport = new DefaultChatTransport({ api: "/api/chat" })
+import { useQueryClient } from "@tanstack/react-query"
+import type { UIMessage } from "ai"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 export const Chat = () => {
-  const { messages, sendMessage, status, stop } = useChat({ transport })
+  const queryClient = useQueryClient()
+  const chatsQuery = useFetchChats()
+  const deleteChatMutation = useMutateDeleteChat()
+  const persistHydrated = useChatPersistenceHydrated()
 
-  const isGenerating = status === "submitted" || status === "streaming"
-  const lastIndex = messages.length - 1
+  const [routingReady, setRoutingReady] = useState(false)
+  const [activeChatId, setActiveChatId] = useState<string | null>(null)
+  const [sessionClientId, setSessionClientId] = useState("")
+  const bootstrapDoneRef = useRef(false)
 
-  const handleSubmit = ({ text }: { text: string }) => {
-    if (!text.trim() || isGenerating) return
-    void sendMessage({ text })
+  const chatDetailQuery = useFetchChatDetail(activeChatId)
+
+  const chats = chatsQuery.data ?? []
+
+  const hydratedFromServer = !!activeChatId && sessionClientId === activeChatId
+
+  const initialMessages: UIMessage[] =
+    hydratedFromServer && chatDetailQuery.data
+      ? chatDetailQuery.data.messages
+      : []
+
+  const startNewDraft = useCallback(() => {
+    setActiveChatId(null)
+    setSessionClientId(crypto.randomUUID())
+    useChatPersistenceStore.getState().clearLastActiveChatId()
+  }, [])
+
+  const loadChat = useCallback((id: string) => {
+    setActiveChatId(id)
+    setSessionClientId(id)
+    useChatPersistenceStore.getState().setLastActiveChatId(id)
+  }, [])
+
+  useEffect(() => {
+    if (!activeChatId || !chatDetailQuery.isError) {
+      return
+    }
+    queueMicrotask(() => {
+      const persisted = useChatPersistenceStore.getState().lastActiveChatId
+      if (persisted === activeChatId) {
+        useChatPersistenceStore.getState().clearLastActiveChatId()
+      }
+      startNewDraft()
+    })
+  }, [activeChatId, chatDetailQuery.isError, startNewDraft])
+
+  useEffect(() => {
+    if (!persistHydrated) {
+      return
+    }
+    if (chatsQuery.isPending || chatsQuery.isError) {
+      return
+    }
+    if (!chatsQuery.isSuccess || bootstrapDoneRef.current) {
+      return
+    }
+    bootstrapDoneRef.current = true
+
+    const list = chatsQuery.data ?? []
+    const stored = useChatPersistenceStore.getState().lastActiveChatId
+
+    queueMicrotask(() => {
+      if (stored && list.some((c) => c.id === stored)) {
+        setActiveChatId(stored)
+        setSessionClientId(stored)
+      } else {
+        if (stored) {
+          useChatPersistenceStore.getState().clearLastActiveChatId()
+        }
+        setActiveChatId(null)
+        setSessionClientId(crypto.randomUUID())
+      }
+      setRoutingReady(true)
+    })
+  }, [
+    persistHydrated,
+    chatsQuery.data,
+    chatsQuery.isError,
+    chatsQuery.isPending,
+    chatsQuery.isSuccess,
+  ])
+
+  const handleSelectChat = useCallback(
+    (id: string) => {
+      loadChat(id)
+    },
+    [loadChat]
+  )
+
+  const handleNewChat = useCallback(() => {
+    startNewDraft()
+  }, [startNewDraft])
+
+  const handleChatCreated = useCallback((id: string) => {
+    setActiveChatId(id)
+    useChatPersistenceStore.getState().setLastActiveChatId(id)
+  }, [])
+
+  const handleDeleteChat = useCallback(
+    async (id: string) => {
+      try {
+        await deleteChatMutation.mutateAsync(id)
+      } catch {
+        return
+      }
+      queryClient.removeQueries({ queryKey: chatQueryKeys.chat(id) })
+      if (activeChatId === id) {
+        startNewDraft()
+      }
+      if (useChatPersistenceStore.getState().lastActiveChatId === id) {
+        useChatPersistenceStore.getState().clearLastActiveChatId()
+      }
+    },
+    [activeChatId, deleteChatMutation, queryClient, startNewDraft]
+  )
+
+  const breadcrumbTitle =
+    activeChatId === null
+      ? "New chat"
+      : chats.find((c) => c.id === activeChatId)?.title?.trim() ||
+        "Untitled chat"
+
+  const waitingForChatDetail =
+    !!activeChatId && hydratedFromServer && chatDetailQuery.isPending
+  const uiReady = routingReady && !waitingForChatDetail
+
+  if (chatsQuery.isError) {
+    return (
+      <div className="flex h-svh items-center justify-center p-6 text-sm text-destructive">
+        Could not load chats.
+      </div>
+    )
+  }
+
+  if (!uiReady || !sessionClientId) {
+    return (
+      <div className="flex h-svh items-center justify-center">
+        <Spinner className="size-8" />
+      </div>
+    )
   }
 
   return (
-    <div className="flex h-svh flex-col">
-      <Conversation>
-        <ConversationContent>
-          {messages.length === 0 && (
-            <ConversationEmptyState
-              description="Send a message to start chatting"
-              icon={<MessageSquareIcon className="size-8" />}
-              title="How can I help you?"
-            />
-          )}
-
-          {messages.map((message, index) => (
-            <Message from={message.role} key={message.id}>
-              <MessageContent>
-                {message.parts.map((part, partIndex) => {
-                  if (part.type === "text") {
-                    return (
-                      <MessageResponse
-                        isAnimating={
-                          status === "streaming" &&
-                          index === lastIndex &&
-                          message.role === "assistant"
-                        }
-                        key={partIndex}
-                      >
-                        {part.text}
-                      </MessageResponse>
-                    )
-                  }
-
-                  if (part.type === "tool-generateImage") {
-                    if (part.state === "output-available") {
-                      const out = part.output
-                      if (
-                        typeof out === "object" &&
-                        out !== null &&
-                        "url" in out &&
-                        typeof out.url === "string"
-                      ) {
-                        return (
-                          <div
-                            className="relative mt-2 max-h-96 w-full max-w-2xl"
-                            key={partIndex}
-                          >
-                            <Image
-                              alt="Generated"
-                              className="rounded-lg border object-contain"
-                              height={1024}
-                              src={out.url}
-                              unoptimized
-                              width={1024}
-                            />
-                          </div>
-                        )
-                      }
-                    }
-
-                    if (part.state === "output-error") {
-                      return (
-                        <p className="text-sm text-destructive" key={partIndex}>
-                          {part.errorText}
-                        </p>
-                      )
-                    }
-
-                    return (
-                      <div
-                        className="flex items-center gap-2 text-sm text-muted-foreground"
-                        key={partIndex}
-                      >
-                        <Spinner className="size-4" />
-                        Generating image…
-                      </div>
-                    )
-                  }
-
-                  return null
-                })}
-              </MessageContent>
-            </Message>
-          ))}
-
-          {status === "submitted" && (
-            <Message from="assistant">
-              <MessageContent>
-                <Spinner className="size-4" />
-              </MessageContent>
-            </Message>
-          )}
-        </ConversationContent>
-
-        <ConversationScrollButton />
-      </Conversation>
-
-      <div className="p-4">
-        <PromptInput onSubmit={handleSubmit}>
-          <PromptInputTextarea placeholder="Ask me anything…" />
-          <PromptInputFooter>
-            <PromptInputTools />
-            <PromptInputSubmit onStop={stop} status={status} />
-          </PromptInputFooter>
-        </PromptInput>
-      </div>
-    </div>
+    <ChatShell
+      breadcrumbTitle={breadcrumbTitle}
+      sidebar={
+        <ChatSidebar
+          activeChatId={activeChatId}
+          chats={chats}
+          onDeleteChat={(id) => {
+            void handleDeleteChat(id)
+          }}
+          onNewChat={handleNewChat}
+          onSelectChat={handleSelectChat}
+        />
+      }
+    >
+      <ChatSession
+        initialDbChatId={activeChatId}
+        initialMessages={initialMessages}
+        key={sessionClientId}
+        onChatCreated={handleChatCreated}
+        onConversationUpdated={() => {
+          void queryClient.invalidateQueries({
+            queryKey: chatQueryKeys.chats(),
+          })
+          if (activeChatId) {
+            void queryClient.invalidateQueries({
+              queryKey: chatQueryKeys.chat(activeChatId),
+            })
+          }
+        }}
+        sessionClientId={sessionClientId}
+      />
+    </ChatShell>
   )
 }

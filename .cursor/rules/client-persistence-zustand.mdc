@@ -1,0 +1,20 @@
+# Client persistence (Zustand)
+
+## No raw `localStorage` / `sessionStorage` in UI
+
+- **Do not** read or write **`window.localStorage`** or **`window.sessionStorage`** directly in **components**, **hooks** (except store internals), or scattered **`lib`** helpers for product state.
+- Use **Zustand** for client-only state that must persist or be shared across the tree. For persistence, use the **`persist`** middleware (or an equivalent documented pattern) so reads/writes stay typed, testable, and centralized.
+
+## Feature `store/` layout
+
+- Per feature, put stores and store-specific helpers under **`src/features/<feature>/store/`** (e.g. **`chat-persistence.store.ts`**, **`chat-persistence.storage.ts`**).
+- **One store module per file** when practical; colocate **custom `persist` storage adapters** next to that store — not in components. Add migrations only when you intentionally need to evolve persisted shape (avoid unless required).
+
+## Types and validation
+
+- Persisted JSON from the browser must be validated with **Zod** before use (see **`zod-validation`**). Colocate **`*.schema.ts`** under feature **`schemas/`** next to the store when it describes persisted state.
+- Public store types live in feature **`types/`** (e.g. **`chat-persistence.types.ts`**), often **re-exporting** **`z.infer`** from the schema for a single source of truth.
+
+## Hydration (Next.js)
+
+- After **`persist`**, wait for **`persist.hasHydrated()`** / **`onFinishHydration`** before trusting rehydrated values for routing or bootstrap (see **`use-chat-persistence-hydrated`**). Avoid flashing wrong UI from default state before storage has replayed.

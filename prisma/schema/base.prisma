@@ -17,34 +17,18 @@ model Chat {
 }
 
 model Message {
-  id        String                  @id @default(cuid())
+  id        String      @id
   chatId    String
-  chat      Chat                    @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  chat      Chat        @relation(fields: [chatId], references: [id], onDelete: Cascade)
   role      MessageRole
   parts     Json
-  status    AssistantMessageStatus?
-  error     String?
-  createdAt DateTime                @default(now())
-}
+  createdAt DateTime    @default(now())
 
-model GeneratedImage {
-  id        String   @id @default(cuid())
-  chatId    String
-  base64    String
-  mimeType  String   @default("image/png")
-  prompt    String
-  createdAt DateTime @default(now())
+  @@index([chatId, createdAt])
 }
 
 enum MessageRole {
   user
   assistant
   system
-}
-
-enum AssistantMessageStatus {
-  pending
-  generating
-  completed
-  failed
 }

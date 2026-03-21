@@ -1,0 +1,28 @@
+# Providers and HTTP client
+
+## App providers
+
+- **React context providers** used at the app root (e.g. `QueryClientProvider`, theme, tooltips) must live under **`src/providers/`**, one concern per file when practical (e.g. `query-client-provider.tsx`, `app-providers.tsx`).
+- **`src/app/layout.tsx`** should stay thin: compose providers by importing a single **`AppProviders`** (or equivalent) from **`src/providers/`**, not inlining multiple providers in the layout file.
+
+## HTTP client
+
+- **Browser-facing API calls** use **`src/lib/http-client.ts`**: **`apiRequest`**, **`ApiError`**, and shared response parsing — not ad hoc `fetch` in components for the same patterns.
+- **Feature-specific endpoints** belong next to that feature (e.g. **`src/features/chat/api/`**) and call **`apiRequest`**; keep request/response shapes in feature **`types/`** files.
+
+## TanStack Query
+
+- **All client-side HTTP reads/writes** that load or mutate app data go through **TanStack Query** (`useQuery`, `useMutation`, `useInfiniteQuery`, `queryClient.fetchQuery` / `prefetchQuery` when imperative). Do **not** call **`apiRequest`** or **`fetch`** from `"use client"` components except inside **`queryFn` / `mutationFn`** (or equivalent wrappers). **`apiRequest`** stays the transport; React Query owns when and how it runs.
+- **`QueryClient` creation and defaults** live **only** in **`src/providers/query-client-provider.tsx`** next to **`QueryClientProvider`** (same file — no separate `lib/query-client` module for the client instance).
+- Use **`useQueryClient`** for **`invalidateQueries`**, **`removeQueries`**, etc., inside hooks or components under the provider.
+
+### Query and mutation hooks (strict)
+
+- **Do not** call **`useQuery`**, **`useMutation`**, **`useInfiniteQuery`**, or **`useSuspenseQuery`** directly inside **components** (`.tsx` files under `components/`, `app/`, etc.). Those primitives belong only in **feature hook modules**.
+- **One React Query call per file**: each file under **`src/features/<feature>/hooks/`** exports **exactly one** custom hook that wraps **a single** `useQuery` / `useMutation` / `useInfiniteQuery` (or re-exports a thin composition that still maps one logical server operation).
+- **Naming**: use **`useFetch…`** for reads (e.g. `useFetchChats`, `useFetchChatDetail`) and **`useMutate…`** for writes (e.g. `useMutateCreateChat`, `useMutateDeleteChat`). **Import these hooks** into components; components orchestrate UI and call **`mutateAsync` / `data` / `isPending`**, not raw TanStack hooks.
+- **Exception**: **`useQueryClient()`** may be used in components for cross-cutting **`invalidateQueries`** / **`removeQueries`** when not already folded into a mutation hook.
+
+## Client persistence
+
+- See **`.cursor/rules/client-persistence-zustand.mdc`**: **`localStorage` / `sessionStorage`** go through **Zustand** (with **`persist`** when saving to the browser), with feature code under **`src/features/<feature>/store/`**.

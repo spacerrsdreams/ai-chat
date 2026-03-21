@@ -1,0 +1,30 @@
+---
+description: One React component per TSX file; helpers in sibling utils/helpers beside the feature or component folder
+alwaysApply: true
+---
+
+# One component per `.tsx` file
+
+- **Exactly one React component** per `*.tsx` file (one function/class/`forwardRef` component that is the file’s UI unit). Do not define additional components in the same file—not even small inner `function Row()` or `const Badge = () => …` helpers used only locally.
+- **Split** into another `*.tsx` file in the same feature (or into a **component-named subfolder**—see below) and compose via imports.
+- Files that export **only hooks** (no JSX) should use **`*.ts`**, not `*.tsx`.
+
+## Where utilities live
+
+- **No** general-purpose helpers inside the component `*.tsx` file. Move pure functions to:
+  - `src/features/<feature>/utils/…` or `helpers/…` for feature-wide helpers, or
+  - Next to the component under a **folder named for that component**, e.g. `components/chat-session/chat-session.utils.ts`, when the logic is specific to that screen/piece.
+- Name files predictably: `*.utils.ts`, `*.helpers.ts`, or `something.utils.ts` colocated with the one component that primarily uses them.
+
+## Suggested layout (component-specific)
+
+```text
+src/features/chat/components/chat-session/
+  chat-session.tsx           # only ChatSession
+  chat-session.utils.ts      # formatters, guards, constants for ChatSession
+```
+
+## Exceptions
+
+- **Routes and framework files** (`page.tsx`, `layout.tsx`, `loading.tsx`, etc.) may stay minimal; still prefer extracting UI into feature components that each follow this rule.
+- **Tests** (`*.test.tsx`) and **story files** may co-locate with the component without changing the production file rule.

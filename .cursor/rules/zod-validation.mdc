@@ -1,0 +1,27 @@
+---
+description: Prefer Zod for runtime validation of unknown object shapes at boundaries
+globs: src/**/*.{ts,tsx}
+alwaysApply: true
+---
+
+# Zod (runtime validation)
+
+## When to use Zod
+
+- **Almost always** use **Zod** when you need to **validate or narrow** an **unknown** or **untrusted** object shape: **JSON** from **`localStorage`**, **API bodies**, **search params**, **WebSocket payloads**, **env** (with `@t3-oss/env-core` or similar if you adopt it), etc.
+- Prefer **`schema.safeParse(value)`** (or **`parse`** only when failure should throw) instead of ad hoc **`typeof` / `in` / manual property checks** for structured data.
+
+## Where schemas live
+
+- **Feature-local** schemas: **`src/features/<feature>/schemas/`** (e.g. **`chat-persistence.schema.ts`**) or **`*.schema.ts`** next to the slice they describe.
+- **Shared** schemas used across features: **`src/lib/schemas/`** or a small **`src/schemas/`** module—avoid duplicating the same shape in multiple features.
+
+## Types vs schemas
+
+- Prefer **`z.infer<typeof mySchema>`** as the **single source of truth** for that shape, and **re-export** from feature **`types/`** when the rest of the feature already imports types from there (see **react-features-architecture**).
+- Do not duplicate the same object shape as both a hand-written `interface` and a Zod schema unless there is a strong reason; let the schema drive the type.
+
+## Discipline
+
+- **No `as` casts** to force unknown JSON into app types without validation—validate first, then use the inferred type.
+- Keep schemas **focused** (one file per domain slice when practical), same spirit as **one hook per file** for React Query.

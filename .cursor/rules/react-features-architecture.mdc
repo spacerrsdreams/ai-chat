@@ -1,15 +1,26 @@
 ---
-description: Feature-first structure, colocation, SOLID, and small focused modules for this Next.js React app
+description: Feature-first layout, types, SOLID, and how this repo’s Cursor rules fit together
 globs: src/**/*.{ts,tsx}
 alwaysApply: true
 ---
 
 # Architecture (strict)
 
+## How the rules connect
+
+| Topic | Rule file |
+| --- | --- |
+| Feature folders, types, app thin routes | **This file** |
+| One component per `*.tsx`, helper file placement | **react-one-component-per-file** |
+| No barrel-only `index.ts` re-exports | **no-barrel-index** |
+| shadcn, ai-elements, Lucide, styling | **ui-shadcn-lucide** |
+| Prisma / migrations | **prisma-migrations** |
+| Zod for runtime validation of unknown shapes | **zod-validation** |
+
 ## Standard UI library (read-only)
 
 - **Do not modify** any files under **`src/components/ui/`** or **`src/components/ai-elements/`**. Treat them as a fixed standard library (shadcn + ai-elements), same as vendor code.
-- **Customize only outside those folders:** compose in `src/features/...`, thin wrapper components, `className` / props from parents, theme tokens in global styles—not edits inside `ui` or `ai-elements`.
+- **Customize only outside those folders:** compose in `src/features/...`, thin wrappers, `className` / props from parents, theme tokens in global styles—not edits inside `ui` or `ai-elements`. (More detail: **ui-shadcn-lucide**.)
 
 ## Feature ownership
 
@@ -19,43 +30,51 @@ alwaysApply: true
 
 ## Colocation
 
-- Keep **components and their local utils** under the same feature tree (e.g. `src/features/chat/components/...` next to `src/features/chat/utils/...`).
-- **Types are not inlined** — they live only in dedicated type files (see Types below), still under that feature, or in `src/global.types.ts` when shared across features.
-- Avoid a flat dump of unrelated files at the feature root; group by subfolder or by slice (e.g. `components/`, `hooks/`, `utils/`, `types/`).
+- Group by slice: `components/`, `hooks/`, `utils/`, `types/`, `constants/`, `repositories/`, etc. Avoid a flat dump of unrelated files at the feature root.
+- **Components** that need dedicated helpers use a **named subfolder** under `components/` (see **react-one-component-per-file**), or feature-level `utils/` when shared across several components in that feature.
+- **Types** are not inlined in components or implementation `.ts` files (see Types below).
 
 ## Types (strict)
 
 - **Never define feature or domain types inside `.tsx` or implementation `.ts` files** (components, hooks, utils). No `interface`/`type` blocks for shared props, models, or API shapes next to implementation—extract them.
 - **Use dedicated files only:** `types.ts`, `*.types.ts`, or a `types/` folder within the feature (e.g. `src/features/chat/types/message.types.ts`).
-- **Shared types** (used by more than one feature): **`src/global.types.ts` only**—one canonical file for app-wide types. Do not scatter the same shared shapes across `lib` or feature files; add or extend exports there and import with `from "@/global.types"`.
+- **Shared types** (used in more than one feature): **`src/global.types.ts` only**—one canonical file. Import with `from "@/global.types"`.
+- **Runtime validation** of unknown structured data (JSON from storage, APIs, etc.) uses **Zod** in dedicated **`schemas/`** files—see **zod-validation**.
 
 ## TypeScript and lint discipline (strict)
 
-- **Minimize casting and assertions.** Avoid `as …`, `as unknown as …`, and non-null `!` to force types. Prefer narrowing (e.g. `typeof`, `in`, discriminated unions), type guards, well-typed generics, and validated boundaries. Literal `as const` for readonly tuples/literals is fine when it improves inference—do not use it to paper over unsafe `any`.
-- **No suppressions in source.** Do not add `eslint-disable` (line, block, or file), `eslint-disable-next-line`, `@ts-ignore`, `@ts-expect-error`, or `@ts-nocheck`. If a rule or error is wrong, fix the code or adjust **project** ESLint/TS config—not inline directives in app or feature files.
+- **Minimize casting and assertions.** Avoid `as …`, `as unknown as …`, and non-null `!` to force types. Prefer narrowing, type guards, and validated boundaries. Literal `as const` for readonly tuples/literals is fine when it improves inference.
+- **No suppressions in source.** Do not add `eslint-disable`, `@ts-ignore`, `@ts-expect-error`, or `@ts-nocheck` in app or feature files. Fix the code or adjust **project** ESLint/TS config.
 
-## Single responsibility and file size
+## Single responsibility
 
-- **One main concern per file.** Split large components into smaller presentational pieces and hooks; extract pure helpers to `utils` (or `*.utils.ts`) in the same feature.
-- **Prefer several small files over one “god” file.** If a file mixes unrelated UI, data fetching, and formatting, split it.
-- **Reuse deliberately:** import from `src/components/ui` and `src/components/ai-elements` (read-only); do not copy-paste their internals into features or edit those directories.
+- **One main concern per file.** Split large UIs into smaller components (each in its own `*.tsx` per **react-one-component-per-file**); extract pure helpers to `utils` / `*.utils.ts` in the same feature.
+- **Reuse deliberately:** import from `src/components/ui` and `src/components/ai-elements` (read-only); do not copy-paste their internals into features.
 
 ## SOLID (practical)
 
 - **S** — Each module does one job (UI vs data vs formatting).
 - **O** — Extend via composition/props/hooks rather than editing unrelated modules for every change.
-- **L** — Substitute implementations via clear props/contracts (e.g. same interface for alternate renderers).
-- **I** — Small, focused props and hook return shapes; avoid “mega props” objects.
-- **D** — Features depend on abstractions (`lib` APIs, hooks) rather than reaching deep into other features’ internals; import concrete modules by path (no barrel-only `index.ts` re-exports—see project rule **no-barrel-index**).
+- **L** — Substitute implementations via clear props/contracts.
+- **I** — Small, focused props and hook return shapes.
+- **D** — Depend on `lib` APIs and feature modules; import concrete files (no barrel-only `index.ts`—see **no-barrel-index**).
 
 ## Example layout
 
 ```text
 src/
-  global.types.ts   # shared types across features only
+  global.types.ts          # app-wide shared types only
   features/chat/
     components/
+      chat/                # optional folder: one main component + its utils
+        chat.tsx
+        chat.utils.ts
+      chat-session/
+        chat-session.tsx
+        chat-session.utils.ts
     hooks/
-    utils/
-    types/          # or types.ts / *.types.ts — feature-only; never inside component files
+    utils/                 # feature-wide helpers
+    types/
+    schemas/               # Zod schemas (runtime validation)
+    repositories/
 ```
