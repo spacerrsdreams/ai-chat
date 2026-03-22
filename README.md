@@ -94,3 +94,9 @@ Generation history: yes—paginated listing of past jobs so earlier runs stay vi
 Error handling: yes—failed jobs and validation errors are surfaced without crashing the flow; invalid prompts get proper API responses where validation applies.
 
 AI integration: yes—real models through the Vercel AI SDK gateway when `AI_GATEWAY_API_KEY` is set; behavior without a key is documented in code paths as appropriate for local or missing-config cases.
+
+---
+
+## Cursor transcripts
+
+Exported Cursor conversation transcripts live under `cursor-transcripts/`. Each markdown file is one session and includes the full chat (user and assistant turns) for that topic, so reviewers can follow how the work was done step by step.
