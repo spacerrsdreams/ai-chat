@@ -17,13 +17,15 @@ import {
   PromptInputTools,
 } from "@/components/ai-elements/prompt-input"
 import { Spinner } from "@/components/ui/spinner"
+import { AssistantThinkingIndicator } from "@/features/chat/components/chat-session/assistant-thinking-indicator"
+import { ChatExamplePrompts } from "@/features/chat/components/chat-session/chat-example-prompts"
 import { useChat } from "@ai-sdk/react"
 import { useMutateCreateChat } from "@/features/chat/hooks/use-mutate-create-chat"
 import { createStableChatTransport } from "@/features/chat/utils/stable-chat-transport"
 import { isImageGenerationInProgress } from "@/features/chat/utils/is-image-generation-in-progress"
 import { cn } from "@/lib/utils"
 import type { UIMessage } from "ai"
-import { MessageSquareIcon } from "lucide-react"
+import { Sparkles } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
@@ -85,11 +87,11 @@ export const ChatSession = ({
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <Conversation className="min-h-0 flex-1">
-        <ConversationContent>
+        <ConversationContent className="flex min-h-full flex-col">
           {messages.length === 0 && (
-            <ConversationEmptyState>
-              <div className="text-muted-foreground">
-                <MessageSquareIcon className="size-8" />
+            <ConversationEmptyState className="min-h-0 flex-1">
+              <div className="flex aspect-square size-8 shrink-0 items-center justify-center rounded-lg bg-foreground text-background">
+                <Sparkles className="size-4" strokeWidth={1.75} />
               </div>
               <div className="space-y-3">
                 <h3 className="text-sm font-medium">How can I help you?</h3>
@@ -216,7 +218,7 @@ export const ChatSession = ({
           {status === "submitted" && (
             <Message from="assistant">
               <MessageContent>
-                <Spinner className="size-4" />
+                <AssistantThinkingIndicator />
               </MessageContent>
             </Message>
           )}
@@ -225,7 +227,22 @@ export const ChatSession = ({
         <ConversationScrollButton />
       </Conversation>
 
-      <div className="shrink-0 bg-background p-4 pt-3">
+      <div
+        className={cn(
+          "shrink-0 bg-background px-4 pb-4",
+          messages.length === 0 ? "pt-2" : "pt-3"
+        )}
+      >
+        {messages.length === 0 && (
+          <ChatExamplePrompts
+            disabled={
+              isGenerating || isImageGenerating || createChatMutation.isPending
+            }
+            onSelect={(text) => {
+              void handleSubmit({ text })
+            }}
+          />
+        )}
         <PromptInput onSubmit={handleSubmit}>
           <PromptInputTextarea
             disabled={isImageGenerating}

@@ -12,6 +12,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { ChatThemeToggle } from "@/features/chat/components/chat-shell/chat-theme-toggle"
 import Link from "next/link"
 
 type ChatShellProps = {
@@ -50,6 +51,9 @@ export const ChatShell = ({
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
+          <div className="ml-auto flex shrink-0">
+            <ChatThemeToggle />
+          </div>
         </header>
         <div className="flex min-h-0 flex-1 flex-col">{children}</div>
       </SidebarInset>

@@ -106,6 +106,8 @@ export const SchemaDisplayPath = ({
   return (
     <span
       className={cn("font-mono text-sm", className)}
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error
       // oxlint-disable-next-line eslint-plugin-react(no-danger)
       dangerouslySetInnerHTML={{ __html: children ?? highlightedPath }}
       {...props}
