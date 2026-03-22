@@ -75,16 +75,16 @@ Environment templates for variable names only live in `.env.example` and `.env.d
 
 This is a **client-heavy** chat and tooling UI, so the stack favors smooth loading, validation at the edges, and predictable server calls.
 
-| Area | Choice | Why |
-| --- | --- | --- |
-| Client state | **Zustand** | Lightweight global state where it helps without boilerplate. |
-| Runtime validation | **Zod** | Validates unknown shapes (API bodies, persistence, params) instead of ad hoc checks. |
-| Server/client data | **TanStack Query** | Caching, retries, and background refresh so the app feels responsive during navigation and polling (e.g. async jobs). |
-| UI | **shadcn/ui** (Radix + Tailwind) | Accessible primitives we own in-repo; pairs cleanly with **Vercel AI Elements** (`src/components/ai-elements/`) for chat-specific patterns. |
-| Chat UX building blocks | **Vercel AI Elements** | Built to work alongside the **AI SDK** (streaming, tool UIs, prompt patterns). |
-| LLM integration | **Vercel AI SDK** (`ai`) | Strong streaming, tools, and provider ecosystem; fits production chat flows. |
-| Routing models | **Vercel AI Gateway** | **Fastest** way to integrate models with the AI SDK on **Vercel**; it also brings **strong observability**, a strong **developer experience**, and keys/billing **in one place**—those are upsides, not the main reason we chose it. |
-| Database | **Prisma** + **Neon** (Postgres) | Mature, fast, and reliable for serverless-style Postgres; Prisma fits migrations and type-safe access. |
+| Area                    | Choice                           | Why                                                                                                                                                                                                                                  |
+| ----------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Client state            | **Zustand**                      | Lightweight global state where it helps without boilerplate.                                                                                                                                                                         |
+| Runtime validation      | **Zod**                          | Validates unknown shapes (API bodies, persistence, params) instead of ad hoc checks.                                                                                                                                                 |
+| Server/client data      | **TanStack Query**               | Caching, retries, and background refresh so the app feels responsive during navigation and polling (e.g. async jobs).                                                                                                                |
+| UI                      | **shadcn/ui** (Radix + Tailwind) | Accessible primitives we own in-repo; pairs cleanly with **Vercel AI Elements** (`src/components/ai-elements/`) for chat-specific patterns.                                                                                          |
+| Chat UX building blocks | **Vercel AI Elements**           | Built to work alongside the **AI SDK** (streaming, tool UIs, prompt patterns).                                                                                                                                                       |
+| LLM integration         | **Vercel AI SDK** (`ai`)         | Strong streaming, tools, and provider ecosystem; fits production chat flows.                                                                                                                                                         |
+| Routing models          | **Vercel AI Gateway**            | **Fastest** way to integrate models with the AI SDK on **Vercel**; it also brings **strong observability**, a strong **developer experience**, and keys/billing **in one place**—those are upsides, not the main reason we chose it. |
+| Database                | **Prisma** + **Neon** (Postgres) | Mature, fast, and reliable for serverless-style Postgres; Prisma fits migrations and type-safe access.                                                                                                                               |
 
 Together, these cover the “main” layers: UI, client data, validation, AI, and persistence without piling on redundant abstractions.
 
@@ -132,6 +132,7 @@ Together, these cover the “main” layers: UI, client data, validation, AI, an
 - **Additional security**: stricter input limits, bot protection where it makes sense, secrets rotation, and monitoring/alerts on error and cost spikes.
 - **Database and cost guardrails**: query budgets, connection pooling tuned for Neon, and background job concurrency caps so we do not **overload the DB** or queue unbounded work.
 - **Fallback models**: if a primary model times out or errors, retry or fail over to a cheaper or more available model instead of a single point of failure.
+- **Smoother, more reliable chat navigation**: switching threads (especially before the first generation has even been sent) could feel snappier and less fragile. Next steps might include **Next.js** `cacheComponents: true` where it fits the routing model, **TanStack Query** tuning (`staleTime`, `gcTime`, fetch deduping) so list/detail data stays warm across navigations, and optionally **client-side persistence** for the query cache so revisiting chats reuses work already done in-session.
 
 ---
 
