@@ -2,7 +2,7 @@
 
 ## Credentials (read this first)
 
-Those files contain API keys tied to real billing for image and text generation through the Vercel AI gateway. The keys are short-lived and will stop working after about two days. Please use the app lightly—only what you need to review the assignment—so we do not burn through quota or cost. Thank you.
+Those project contains API keys tied to real billing for image and text generation through the Vercel AI gateway. The keys are short-lived and will stop working after about two days. Please use the app lightly—only what you need to review the assignment—so we do not burn through quota or cost. Thank you.
 
 ---
 
