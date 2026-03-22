@@ -119,10 +119,16 @@ function serializeBody(body: RequestInit["body"]): BodyInit | null | undefined {
   return body
 }
 
+const ValidHTTPMethods = ["GET", "HEAD", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
+
 export const apiRequest = async <T>(
   url: string,
   options: RequestInit = {}
 ): Promise<T> => {
+  if (!ValidHTTPMethods.includes(options.method ?? "GET")) {
+    throw new Error(`Invalid HTTP method: ${options.method}`)
+  }
+
   const method = (options.method ?? "GET").toUpperCase()
   const headers = new Headers(options.headers)
   const serializedBody = serializeBody(options.body)
