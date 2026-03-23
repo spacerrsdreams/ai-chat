@@ -5,20 +5,23 @@ import type {
 } from "@/features/chat/types/chat-api.types"
 import type { ChatListItem } from "@/features/chat/types/chat-list.types"
 import { apiRequest } from "@/lib/http-client"
+import { routes } from "@/lib/routes"
 
 export async function listChatsApi(): Promise<ChatListItem[]> {
-  const res = await apiRequest<ChatsListResponse>("/api/chats")
+  const res = await apiRequest<ChatsListResponse>(routes.api.chats.list)
   return res.chats
 }
 
 export async function createChatApi(): Promise<CreateChatResponse> {
-  return apiRequest<CreateChatResponse>("/api/chats", { method: "POST" })
+  return apiRequest<CreateChatResponse>(routes.api.chats.create, {
+    method: "POST",
+  })
 }
 
 export async function getChatApi(id: string): Promise<GetChatResponse> {
-  return apiRequest<GetChatResponse>(`/api/chats/${id}`)
+  return apiRequest<GetChatResponse>(routes.api.chats.get(id))
 }
 
 export async function deleteChatApi(id: string): Promise<void> {
-  await apiRequest<unknown>(`/api/chats/${id}`, { method: "DELETE" })
+  await apiRequest<unknown>(routes.api.chats.delete(id), { method: "DELETE" })
 }

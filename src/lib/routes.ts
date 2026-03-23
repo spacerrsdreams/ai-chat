@@ -8,6 +8,17 @@ export const routes = {
       messages: (id: string) => `/api/chats/${id}/messages`,
       title: (id: string) => `/api/chats/${id}/title`,
     },
+    generationJobs: {
+      list: (offset: number, limit: number) => {
+        const params = new URLSearchParams({
+          offset: String(offset),
+          limit: String(limit),
+        })
+        return `/api/generation-jobs?${params.toString()}`
+      },
+      create: "/api/generation-jobs",
+      get: (jobId: string) => `/api/generation-jobs/${jobId}`,
+    },
   },
   web: {
     home: "/",

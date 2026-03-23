@@ -8,15 +8,15 @@ alwaysApply: true
 
 ## How the rules connect
 
-| Topic | Rule file |
-| --- | --- |
-| Feature folders, types, app thin routes | **This file** |
-| One component per `*.tsx`, helper file placement | **react-one-component-per-file** |
-| No barrel-only `index.ts` re-exports | **no-barrel-index** |
-| shadcn, ai-elements, Lucide, styling | **ui-shadcn-lucide** |
-| Prisma / migrations | **prisma-migrations** |
-| Zod for runtime validation of unknown shapes | **zod-validation** |
-| `import "server-only"` on server actions, repositories, Prisma client | **server-only-guard** |
+| Topic                                                                 | Rule file                        |
+| --------------------------------------------------------------------- | -------------------------------- |
+| Feature folders, types, app thin routes                               | **This file**                    |
+| One component per `*.tsx`, helper file placement                      | **react-one-component-per-file** |
+| No barrel-only `index.ts` re-exports                                  | **no-barrel-index**              |
+| shadcn, ai-elements, Lucide, styling                                  | **ui-shadcn-lucide**             |
+| Prisma / migrations                                                   | **prisma-migrations**            |
+| Zod for runtime validation of unknown shapes                          | **zod-validation**               |
+| `import "server-only"` on server actions, repositories, Prisma client | **server-only-guard**            |
 
 ## Standard UI library (read-only)
 
@@ -60,22 +60,57 @@ alwaysApply: true
 - **I** — Small, focused props and hook return shapes.
 - **D** — Depend on `lib` APIs and feature modules; import concrete files (no barrel-only `index.ts`—see **no-barrel-index**).
 
-## Example layout
+## Canonical feature layout (mirror `src/features/chat`)
+
+New features should follow the same **slice folders** and naming habits as chat: one concern per directory, **named subfolders** under `components/` for each screen or UI cluster, **direct imports** from concrete files (no barrel `index.ts`). Cross-feature types stay in **`src/global.types.ts`** (see Types above).
 
 ```text
-src/
-  global.types.ts          # app-wide shared types only
-  features/chat/
-    components/
-      chat/                # optional folder: one main component + its utils
-        chat.tsx
-        chat.utils.ts
-      chat-session/
-        chat-session.tsx
-        chat-session.utils.ts
-    hooks/
-    utils/                 # feature-wide helpers
-    types/
-    schemas/               # Zod schemas (runtime validation)
-    repositories/
+src/features/chat/
+  api/                         # feature-scoped HTTP / client API modules
+    chats.api.ts
+  components/                  # UI only; compose `src/components/ui` + ai-elements
+    chat.tsx                   # top-level feature component (thin composition)
+    chat-session/              # one folder per area; one `*.tsx` component per file
+      chat-session.tsx
+      chat-example-prompts.tsx
+      assistant-thinking-indicator.tsx
+    chat-shell/
+      chat-shell.tsx
+      chat-theme-toggle.tsx
+    chat-sidebar/
+      chat-sidebar.tsx
+  constants/                   # static strings, query keys, prompts
+    chat-query-keys.ts
+    chat-system-prompt.ts
+    chat-example-prompts.constants.ts
+  hooks/                       # data hooks, effects (one main export per file)
+    use-fetch-chats.ts
+    use-fetch-chat-detail.ts
+    use-mutate-create-chat.ts
+    use-mutate-delete-chat.ts
+    use-chat-persistence-hydrated.ts
+  repositories/                # persistence / DB access for this feature
+    chat.repository.ts
+  schemas/                     # Zod for unknown JSON (storage, wire formats)
+    chat-persistence.schema.ts
+  store/                       # client state + storage adapters when needed
+    chat-persistence.store.ts
+    chat-persistence.storage.ts
+  tools/                       # AI tools / tool wiring owned by the feature
+    chat-tools.ts
+    generate-image.tool.ts
+  types/                       # `*.types.ts` — shared props, DTOs, tool shapes
+    chat-api.types.ts
+    chat-list.types.ts
+    chat-sidebar.types.ts
+    chat-persistence.types.ts
+    chat-example-prompts.types.ts
+    generate-image-tool.types.ts
+  utils/                       # pure helpers shared across the feature
+    chat-message-storage.utils.ts
+    generate-chat-title.ts
+    is-image-generation-in-progress.ts
+    stable-chat-transport.ts
 ```
+
+Not every feature needs every slice (e.g. skip `tools/` if there are no agent tools). **Do** keep the same spirit: colocate by role, split components into subfolders when a cluster grows, and keep types/schemas/constants out of implementation files as described above.

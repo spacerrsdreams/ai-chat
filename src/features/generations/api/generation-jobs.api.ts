@@ -8,14 +8,7 @@ import type {
   GenerationJobListPage,
 } from "@/features/generations/types/generation-job.types"
 import { apiRequest } from "@/lib/http-client"
-
-function buildListUrl(offset: number, limit: number): string {
-  const params = new URLSearchParams({
-    offset: String(offset),
-    limit: String(limit),
-  })
-  return `/api/generation-jobs?${params.toString()}`
-}
+import { routes } from "@/lib/routes"
 
 export async function listGenerationJobsPageApi(input?: {
   offset?: number
@@ -23,7 +16,9 @@ export async function listGenerationJobsPageApi(input?: {
 }): Promise<GenerationJobListPage> {
   const offset = input?.offset ?? 0
   const limit = input?.limit ?? GENERATION_JOBS_PAGE_SIZE
-  const raw = await apiRequest<unknown>(buildListUrl(offset, limit))
+  const raw = await apiRequest<unknown>(
+    routes.api.generationJobs.list(offset, limit)
+  )
   const parsed = generationJobListResponseSchema.safeParse(raw)
   if (!parsed.success) {
     throw new Error("Unexpected generation jobs list shape")
@@ -34,7 +29,7 @@ export async function listGenerationJobsPageApi(input?: {
 export async function createGenerationJobApi(
   body: CreateGenerationJobBody
 ): Promise<{ jobId: string }> {
-  const raw = await apiRequest<unknown>("/api/generation-jobs", {
+  const raw = await apiRequest<unknown>(routes.api.generationJobs.create, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
